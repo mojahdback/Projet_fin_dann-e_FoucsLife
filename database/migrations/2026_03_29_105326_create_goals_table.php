@@ -12,7 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('goals', function (Blueprint $table) {
-            $table->id();
+            $table->id('goal_id');
+            $table->foreignId('user_id')->constrained('users','user_id')
+                                        ->onDelete('cascade');
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->enum('type', ['short_term' , 'mid_term' , 'long_term']);
+            $table->enum('priority' , ['low' , 'medium' , 'high'])->default('medium');
+            $table->enum('status' , ['active' , 'paused' , 'done' , 'cancelled'])->default('active');
+            $table->date('start_date')->nullable();
+            $table->date('end_date')->nullable();                                    
             $table->timestamps();
         });
     }
