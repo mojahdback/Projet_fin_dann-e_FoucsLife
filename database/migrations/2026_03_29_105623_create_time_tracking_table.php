@@ -12,7 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('time_tracking', function (Blueprint $table) {
-            $table->id();
+            $table->id('time_id');
+            $table->foreignId('task_id')
+                  ->constrained('tasks', 'task_id')
+                  ->onDelete('cascade');
+            $table->dateTime('start_time');
+            $table->dateTime('end_time')->nullable();
             $table->timestamps();
         });
     }
