@@ -12,7 +12,14 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('habits', function (Blueprint $table) {
-            $table->id();
+            $table->id('habit_id');
+            $table->foreignId('user_id')
+                  ->constrained('users', 'user_id')
+                  ->onDelete('cascade');
+            $table->string('name');
+            $table->text('description')->nullable();
+            $table->enum('frequency', ['daily', 'weekly', 'monthly'])->default('daily');
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }
