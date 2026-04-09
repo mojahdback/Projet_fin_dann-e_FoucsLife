@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use APP\Models\User;
+use App\Models\User;
 
 class AuthRepository
 {
