@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Controllers\TaskController;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\GoalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -27,6 +29,15 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth.custom')->group(function () {
     Route::get('/dashboard' , fn() => view('dashboard'))->name('dashboard');
     Route::post('/logout' , [LoginController::class, 'logout'])->name('logout');
+
+    Route::resource('goals', GoalController::class);
+    Route::resource('tasks', TaskController::class);
+
+    Route::post('tasks/{id}/timer/start', [TaskController::class , 'startTimer'])
+        ->name('tasks.timer.start');
+
+    Route::post('tasks/{id}/timer/stop', [TaskController::class , 'stopTimer'])
+        ->name('tasks.timer.stop');
 
 });
 
