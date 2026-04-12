@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\GoalController;
+use App\Http\Controllers\HabitController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +39,12 @@ Route::middleware('auth.custom')->group(function () {
 
     Route::post('tasks/{id}/timer/stop', [TaskController::class , 'stopTimer'])
         ->name('tasks.timer.stop');
+
+
+    Route::resource('habits', HabitController::class);
+    
+    Route::post('habits/{id}/toggle', [HabitController::class, 'toggle'])
+         ->name('habits.toggle');
 
 });
 
