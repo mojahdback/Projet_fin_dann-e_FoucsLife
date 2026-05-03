@@ -20,6 +20,11 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->enum('frequency', ['daily', 'weekly', 'monthly'])->default('daily');
             $table->boolean('is_active')->default(true);
+            $table->string('color')->default('#6366f1');
+            $table->time('remind_at')->nullable();
+            $table->json('monthly_days')->nullable();
+            $table->json('weekly_days')->nullable();
+            $table->boolean('reminder_sent_today')->default(false);
             $table->timestamps();
         });
     }

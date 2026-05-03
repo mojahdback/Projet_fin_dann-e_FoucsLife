@@ -16,11 +16,11 @@ return new class extends Migration
             $table->foreignId('habit_id')
                   ->constrained('habits', 'habit_id')
                   ->onDelete('cascade');
-            $table->date('date');
+            $table->date('tracked_date');
             $table->boolean('completed')->default(false);
             $table->text('note')->nullable(); 
             $table->timestamps();
-            $table->unique(['habit_id', 'date']);
+            $table->unique(['habit_id', 'tracked_date']);
         });
     }
 

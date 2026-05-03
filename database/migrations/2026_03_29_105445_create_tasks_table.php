@@ -25,7 +25,12 @@ return new class extends Migration
             $table->enum('priority', ['low' , 'medium' , 'high'])->default('medium');
             $table->enum('status', ['todo' , 'in_progress' , 'done' ,'cancelled'])->default('todo');
             $table->enum('period' , ['day' , 'week' , 'month' ,'year'])->default('day');
+            $table->json('repeat_days')->nullable();
             $table->date('due_date')->nullable();
+            $table->date('scheduled_date')->nullable();
+            $table->time('scheduled_time')->nullable();
+            $table->dateTime('remind_at')->nullable();
+            $table->boolean('reminder_sent')->default(false);
             $table->timestamps();
         });
     }
@@ -35,6 +40,13 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('tasks');
+       Schema::table('tasks', function (Blueprint $table) {
+            $table->dropColumn([
+                'scheduled_date',
+                'scheduled_time',
+                'remind_at',
+                'reminder_sent',
+            ]);
+        });
     }
 };

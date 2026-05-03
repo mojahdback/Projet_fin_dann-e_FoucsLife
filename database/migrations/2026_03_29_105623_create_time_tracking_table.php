@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('time_tracking', function (Blueprint $table) {
+        Schema::create('time_trackings', function (Blueprint $table) {
             $table->id('time_id');
             $table->foreignId('task_id')
                   ->constrained('tasks', 'task_id')
