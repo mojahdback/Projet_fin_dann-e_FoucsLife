@@ -12,7 +12,12 @@ class Kernel extends ConsoleKernel
      */
     protected function schedule(Schedule $schedule): void
     {
-        // $schedule->command('inspire')->hourly();
+    $schedule->command('tasks:cancel-missed')->dailyAt('00:01');
+    $schedule->command('reminders:send')->everyMinute();
+    $schedule->call(function () {
+        \App\Models\Habit::query()->update(['reminder_sent_today' => false]);
+    })->dailyAt('00:00');
+
     }
 
     /**
