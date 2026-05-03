@@ -5,50 +5,50 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
     public function __construct(
         protected AuthService $authService
-    ){}
+    ) {
+    }
 
-    public function showForm(){
+    public function showForm()
+    {
         return view('auth.login');
     }
 
-    public function login(Request $request){
+    public function login(Request $request)
+    {
         $validated = $request->validate([
             'email' => 'required|email',
             'password' => 'required',
         ]);
 
-        $user = $this->authService->login(
-                $validated['email'],
-                $validated['password']
-        );
+        if (Auth::attempt($validated)) {
+            session()->regenerate();
 
-        if(!$user){
-            return back()->withErrors([
-                'email' => 'Your email or password wrong'
-            ]);
-        }
+            $user = Auth::user();
 
-        session()->regenerate();
-        session(['auth_user_id' => $user->user_id]);
-
-
-        return  $user->isAdmin()
+            return $user->isAdmin()
                 ? redirect()->route('admin.dashboard')
                 : redirect()->route('dashboard');
-    }
+        }
 
-    public function logout(Request $request){
-        session()->forget('auth_user_id');
-        session()->invalidate();
-        session()->regenerateToken();
+        return back()->withErrors([
+            'email' => 'Your email or password wrong'
+        ]);
+
+    }
+    public function logout(Request $request)
+    {
+        auth()->logout();
+        request()->session()->invalidate();
+        request()->session()->regenerateToken();
 
         return redirect()->route('login');
     }
 
-    
+
 }
