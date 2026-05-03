@@ -12,9 +12,9 @@ class AuthService
         protected AuthRepository $authRepository
     ){}
 
-    public function register(array $date): User
+    public function register(array $data): User
     {
-        return $this->authRepository->create($date);
+        return $this->authRepository->create($data);
     }
 
     public function login(string $email , string $password): ?User
