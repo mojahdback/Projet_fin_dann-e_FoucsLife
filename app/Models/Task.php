@@ -21,18 +21,24 @@ class Task extends Model
         'description',
         'priority',
         'status',
-        'period',
         'due_date',
+        'scheduled_date',
+        'scheduled_time',
+        'remind_at',
+        'reminder_sent',
+        'repeat_days',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'due_date' => 'date',
-        ];
-    }
+    protected $casts = [
+    'due_date'       => 'date',
+    'scheduled_date' => 'date',
+    'remind_at'      => 'datetime',
+    'repeat_days'    => 'array',
+    'reminder_sent'  => 'boolean',
+];
 
-   
+    // ===== Relations =====
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
@@ -48,7 +54,8 @@ class Task extends Model
         return $this->hasMany(TimeTracking::class, 'task_id', 'task_id');
     }
 
-   
+    // ===== Accessors =====
+
     public function getTotalMinutesAttribute(): int
     {
         return $this->timeLogs()
@@ -58,7 +65,6 @@ class Task extends Model
                 ->diffInMinutes(Carbon::parse($log->end_time)));
     }
 
- 
     public function getFormattedTimeAttribute(): string
     {
         $minutes = $this->total_minutes;
@@ -67,19 +73,36 @@ class Task extends Model
         return $h > 0 ? "{$h}h {$m}min" : "{$m}min";
     }
 
-  
     public function getIsOverdueAttribute(): bool
     {
-        return $this->due_date
-            && $this->due_date->isPast()
-            && $this->status !== 'done';
+        return $this->scheduled_date
+            && $this->scheduled_date->isPast()
+            && !$this->scheduled_date->isToday()
+            && $this->status !== 'done'
+            && $this->status !== 'cancelled';
     }
 
-  
     public function getIsRunningAttribute(): bool
     {
         return $this->timeLogs()->whereNull('end_time')->exists();
     }
+
+    // ===== Auto-categorization =====
+
+    public function getCategoryAttribute(): string
+    {
+        if (!$this->scheduled_date) return 'all';
+
+        if ($this->scheduled_date->isToday()) return 'today';
+
+        if ($this->scheduled_date->isCurrentWeek()) return 'week';
+
+        if ($this->scheduled_date->isFuture()) return 'all';
+
+        return 'past'; // missed
+    }
+
+    // ===== Scopes =====
 
     public function scopeForUser($query, int $userId)
     {
@@ -88,17 +111,33 @@ class Task extends Model
 
     public function scopeForToday($query)
     {
-        return $query->where('period', 'day')
-                     ->whereDate('due_date', today());
+        return $query->whereDate('scheduled_date', today())
+                     ->whereNotIn('status', ['cancelled']);
     }
 
-    public function scopeByPeriod($query, string $period)
+    public function scopeForThisWeek($query)
     {
-        return $query->where('period', $period);
+        return $query->whereBetween('scheduled_date', [
+            now()->startOfWeek(),
+            now()->endOfWeek(),
+        ])->whereNotIn('status', ['cancelled']);
+    }
+
+    public function scopeUpcoming($query)
+    {
+        return $query->where(function ($q) {
+            $q->whereNull('scheduled_date')
+              ->orWhere('scheduled_date', '>=', today());
+        })->whereNotIn('status', ['cancelled']);
     }
 
     public function scopePending($query)
     {
         return $query->whereIn('status', ['todo', 'in_progress']);
+    }
+
+    public function scopeNotCancelled($query)
+    {
+        return $query->whereNotIn('status', ['cancelled']);
     }
 }
