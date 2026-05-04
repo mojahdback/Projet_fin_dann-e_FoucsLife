@@ -11,47 +11,50 @@ use Illuminate\Database\Eloquent\Collection;
 class TaskService
 {
     public function __construct(
-        protected TaskRepository $taskRepository,
+        protected TaskRepository         $taskRepository,
         protected TimeTrackingRepository $timeRepository
-    ){}
+    ) {}
 
-
-    public function getAllForUser(int $userId)
+    public function getAllForUser(int $userId): Collection
     {
         return $this->taskRepository->getAllForUser($userId);
     }
 
-    public function findById(int $taskId): ?Task{
+    public function getForToday(int $userId): Collection
+    {
+        return $this->taskRepository->getForToday($userId);
+    }
+
+    public function getForThisWeek(int $userId): Collection
+    {
+        return $this->taskRepository->getForThisWeek($userId);
+    }
+
+    public function findById(int $taskId): ?Task
+    {
         return $this->taskRepository->findById($taskId);
     }
 
     public function create(int $userId, array $data): Task
     {
         return $this->taskRepository->create([
-            'user_id'  => $userId,
-            'goal_id'  => $data['goal_id'] ?? null,
-            'title'    => $data['title'],
-            'description'  => $data['description'] ?? null,
-            'priority'     => $data['priority'],
-            'status'    => 'todo',
-            'period'   => $data['period'],
-            'due_date'  => $data['due_date'] ?? null,
-
+            'user_id'        => $userId,
+            'goal_id'        => $data['goal_id']        ?? null,
+            'title'          => $data['title'],
+            'description'    => $data['description']    ?? null,
+            'priority'       => $data['priority'],
+            'status'         => 'todo',
+            'due_date'       => $data['due_date']        ?? null,
+            'scheduled_date' => $data['scheduled_date']  ?? null,
+            'scheduled_time' => $data['scheduled_time']  ?? null,
+            'remind_at'      => $data['remind_at']       ?? null,
+            'repeat_days'    => $data['repeat_days']     ?? null,
         ]);
     }
 
-    public function update(Task $task , array $data) 
+    public function update(Task $task, array $data): Task
     {
-        return $this->taskRepository->update($task, [
-            'goal_id' => $data['goal_id'] ?? null ,
-            'title'   => $data['title'],
-            'description' => $data['description'] ?? null,
-            'priority'    => $data['priority'],
-            'status'      => $data['status'],
-            'period'      => $data['period'],
-            'due_date'    => $data['due_date'] ?? null,
-
-        ]);
+        return $this->taskRepository->update($task, $data);
     }
 
     public function delete(Task $task): void
@@ -59,29 +62,17 @@ class TaskService
         $this->taskRepository->delete($task);
     }
 
-    public function getByPeriod(int $userId , string $period){
-        return $this->taskRepository->getByPeriod($userId, $period);
-    }
-
-    public function getPending(int $userId )
+    public function authorizeUser(Task $task, int $userId): bool
     {
-        return $this->taskRepository->getPending($userId);
+        return $task->user_id === $userId;
     }
 
-    public function getToday(int $userId)
-    {
-        return $this->taskRepository->getToday($userId);
-    }
-
-    public function authorizeUser(Task $task , int $userId): bool{
-
-        return $task->user_id === $userId ;
-    }
+    // ===== Timer =====
 
     public function startTimer(Task $task): TimeTracking
     {
         $running = $this->timeRepository->getRunningForTask($task->task_id);
-        if($running){
+        if ($running) {
             $this->timeRepository->stop($running);
         }
 
@@ -93,10 +84,7 @@ class TaskService
     public function stopTimer(Task $task): ?TimeTracking
     {
         $running = $this->timeRepository->getRunningForTask($task->task_id);
-
-        if(!$running){
-            return null;
-        }
+        if (!$running) return null;
 
         return $this->timeRepository->stop($running);
     }
@@ -105,18 +93,4 @@ class TaskService
     {
         return $this->timeRepository->getForTask($task->task_id);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
